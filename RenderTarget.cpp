@@ -1,9 +1,13 @@
 #include "RenderTarget.h"
-RenderTarget::RenderTarget(int inWidth, int inHeight) {
+
+RenderTarget::RenderTarget(int inWidth, int inHeight) 
+{
 	mWidth = inWidth;
 	mHeight = inHeight;
 }
-void RenderTarget::AttachColorBuffer(DXGI_FORMAT inFormat, const float* inClearColor) {
+
+void RenderTarget::AttachColorBuffer(DXGI_FORMAT inFormat, const float* inClearColor) 
+{
 	mColorRTFormat = inFormat;
 
 	D3D12_HEAP_PROPERTIES d3dHeapProperties = {};
@@ -45,7 +49,9 @@ void RenderTarget::AttachColorBuffer(DXGI_FORMAT inFormat, const float* inClearC
 
 	GetD3DDevice()->CreateRenderTargetView(mColorBuffer, &rtvDesc, mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
-void RenderTarget::AttachDSBuffer(DXGI_FORMAT inFormat) {
+
+void RenderTarget::AttachDSBuffer(DXGI_FORMAT inFormat) 
+{
 	mDSFormat = inFormat;
 	ID3D12Device*device=GetD3DDevice();
 	D3D12_HEAP_PROPERTIES d3dHeapProperties = {};
@@ -88,7 +94,9 @@ void RenderTarget::AttachDSBuffer(DXGI_FORMAT inFormat) {
 	device->CreateDepthStencilView(mDSBuffer, &d3dDSViewDesc, mDSDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 }
-RenderTarget* RenderTarget::BeginRendering(ID3D12GraphicsCommandList* inCommandList) {
+
+RenderTarget* RenderTarget::BeginRendering(ID3D12GraphicsCommandList* inCommandList) 
+{
 	D3D12_RESOURCE_BARRIER barriers[2];
 	barriers[0] = InitResourceBarrier(
 		mColorBuffer,
@@ -113,7 +121,9 @@ RenderTarget* RenderTarget::BeginRendering(ID3D12GraphicsCommandList* inCommandL
 	inCommandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 	return this;
 }
-void RenderTarget::EndRendering(ID3D12GraphicsCommandList* inCommandList) {
+
+void RenderTarget::EndRendering(ID3D12GraphicsCommandList* inCommandList) 
+{
 	D3D12_RESOURCE_BARRIER barriers[2];
 	barriers [0] = InitResourceBarrier(
 		mColorBuffer, 
@@ -124,4 +134,5 @@ void RenderTarget::EndRendering(ID3D12GraphicsCommandList* inCommandList) {
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		D3D12_RESOURCE_STATE_GENERIC_READ);
 	inCommandList->ResourceBarrier(_countof(barriers), barriers);
+
 }

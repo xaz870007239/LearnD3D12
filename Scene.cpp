@@ -6,30 +6,36 @@
 #include "Material.h"
 #include "SceneNode.h"
 #include "RenderTarget.h"
+
 struct LightData{
 	float mColor[4];
 	float mPositionAndIntensity[4];//x,y,z,intensity
 };
-SceneNode* gSphereNode = nullptr,*gSkyBoxNode=nullptr,*gFSTNode=nullptr;
-ID3D12Resource* gLightDataSB=nullptr;
+
 DirectX::XMMATRIX gProjectionMatrix;
 Camera gMainCamera;
+SceneNode* gSphereNode = nullptr,*gSkyBoxNode=nullptr,*gFSTNode=nullptr;
+ID3D12Resource* gLightDataSB=nullptr;
 ID3D12Resource* gTextureCube = nullptr,*gSBA = nullptr,*gSBB = nullptr,*gSBOut = nullptr;
 RenderTarget* gRTLDR = nullptr;
 ID3D12PipelineState* gCSPSO = nullptr;
 ID3D12DescriptorHeap* gDescriptorHeap = nullptr;
-void InitScene(int inCanvasWidth, int inCanvasHeight) {
+
+void InitScene(int inCanvasWidth, int inCanvasHeight) 
+{
 	ID3D12Device* d3dDevice = GetD3DDevice();
 	ID3D12GraphicsCommandList* commandList = GetCommandList();
 	ID3D12CommandAllocator* commandAllocator = GetCommandAllocator();
 
 	InitRootSignature();
+
 	D3D12_SHADER_BYTECODE csShader;
 	CreateShaderFromFile(L"Res/Shader/cs_rwbuffer.hlsl", "MainCS", "cs_5_1", &csShader);
 	D3D12_COMPUTE_PIPELINE_STATE_DESC csPSODesc = {};
 	csPSODesc.pRootSignature = GetRootSignature();
 	csPSODesc.CS = csShader;
 	GetD3DDevice()->CreateComputePipelineState(&csPSODesc, IID_PPV_ARGS(&gCSPSO));
+
 	{
 		float sbAData[] = {-0.5f,0.0f,0.0f};
 		float sbBData[] = {0.5f,0.0f,0.0f};
@@ -37,8 +43,10 @@ void InitScene(int inCanvasWidth, int inCanvasHeight) {
 		gSBB = CreateCPUGPUBufferObject(65536);
 		UpdateCPUGPUBuffer(gSBA, sbAData, sizeof(float) * 3);
 		UpdateCPUGPUBuffer(gSBB, sbBData, sizeof(float) * 3);
+
 		D3D12_HEAP_PROPERTIES d3dHeapProperties = {};
 		d3dHeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
 		D3D12_RESOURCE_DESC d3d12ResourceDesc = {};
 		d3d12ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 		d3d12ResourceDesc.Alignment = 0;
@@ -74,6 +82,7 @@ void InitScene(int inCanvasWidth, int inCanvasHeight) {
 		"Res/Image/pz.jpg",
 		"Res/Image/nz.jpg"
 	};
+
 	gTextureCube = CreateTextureCube(commandList, images);
 	gLightDataSB = CreateCPUGPUBufferObject(65536);
 
@@ -120,7 +129,8 @@ void InitScene(int inCanvasWidth, int inCanvasHeight) {
 	WaitForCompletionOfCommandList();
 }
 
-void RenderOneFrame(float inDeltaFrameTime, float inTimeSinceAppStart) {
+void RenderOneFrame(float inDeltaFrameTime, float inTimeSinceAppStart) 
+{
 	GlobalConstants globalConstants;
 	DirectX::XMFLOAT4X4 tempMatrix;
 	DirectX::XMStoreFloat4x4(&tempMatrix, gProjectionMatrix);

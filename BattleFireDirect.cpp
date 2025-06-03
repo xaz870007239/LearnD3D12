@@ -15,10 +15,14 @@ ID3D12Fence* gFence = nullptr;
 HANDLE gFenceEvent = nullptr;
 UINT64 gFenceValue = 0;
 ID3D12RootSignature* gRootSignature=nullptr;
-ID3D12RootSignature* GetRootSignature() {
+
+ID3D12RootSignature* GetRootSignature() 
+{
 	return gRootSignature;
 }
-ID3D12RootSignature* InitRootSignature() {
+
+ID3D12RootSignature* InitRootSignature() 
+{
 	//1110001110101111111111111111111111
 	D3D12_ROOT_PARAMETER rootParameters[6];
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
@@ -106,11 +110,10 @@ ID3D12RootSignature* InitRootSignature() {
 
 	return gRootSignature;
 }
-void CreateShaderFromFile(
-	LPCTSTR inShaderFilePath,
-	const char* inMainFunctionName,
-	const char* inTarget,//"vs_5_0","ps_5_0","vs_4_0"
-	D3D12_SHADER_BYTECODE* inShader) {
+
+//"vs_5_0","ps_5_0","vs_4_0"
+void CreateShaderFromFile(LPCTSTR inShaderFilePath,	const char* inMainFunctionName,	const char* inTarget, D3D12_SHADER_BYTECODE* inShader) 
+{
 	ID3DBlob* shaderBuffer = nullptr;
 	ID3DBlob* errorBuffer = nullptr;
 	HRESULT hResult = D3DCompileFromFile(inShaderFilePath, nullptr, nullptr,
@@ -126,9 +129,12 @@ void CreateShaderFromFile(
 	inShader->pShaderBytecode = shaderBuffer->GetBufferPointer();
 	inShader->BytecodeLength = shaderBuffer->GetBufferSize();
 }
-ID3D12Resource* CreateCPUGPUBufferObject(int inDataLen) {
+
+ID3D12Resource* CreateCPUGPUBufferObject(int inDataLen) 
+{
 	D3D12_HEAP_PROPERTIES d3dHeapProperties = {};
 	d3dHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;//cpu,gpu
+
 	D3D12_RESOURCE_DESC d3d12ResourceDesc = {};
 	d3d12ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	d3d12ResourceDesc.Alignment = 0;
@@ -143,6 +149,7 @@ ID3D12Resource* CreateCPUGPUBufferObject(int inDataLen) {
 	d3d12ResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 	ID3D12Resource* bufferObject = nullptr;
+
 	gD3D12Device->CreateCommittedResource(
 		&d3dHeapProperties,
 		D3D12_HEAP_FLAG_NONE,
@@ -153,7 +160,9 @@ ID3D12Resource* CreateCPUGPUBufferObject(int inDataLen) {
 	);
 	return bufferObject;
 }
-void UpdateCPUGPUBuffer(ID3D12Resource* inCB, void* inData, int inDataLen) {
+
+void UpdateCPUGPUBuffer(ID3D12Resource* inCB, void* inData, int inDataLen) 
+{
 	D3D12_RANGE d3d12Range = { 0 };
 	unsigned char* pBuffer = nullptr;
 	inCB->Map(0, &d3d12Range, (void**)&pBuffer);
@@ -163,13 +172,15 @@ void UpdateCPUGPUBuffer(ID3D12Resource* inCB, void* inData, int inDataLen) {
 
 ID3D12PipelineState* CreatePSO(ID3D12RootSignature* inID3D12RootSignature,
 	D3D12_SHADER_BYTECODE inVertexShader, D3D12_SHADER_BYTECODE inPixelShader,
-	D3D12_CULL_MODE inCullMode, bool inEnableDepthTest) {
+	D3D12_CULL_MODE inCullMode, bool inEnableDepthTest) 
+{
 	D3D12_INPUT_ELEMENT_DESC vertexDataElementDesc[] = {
-		{"POSITION",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
-		{"TEXCOORD",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,sizeof(float) * 4,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
-		{"NORMAL",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,sizeof(float) * 8,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
-		{"TANGENT",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,sizeof(float) * 12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0}
+		{"POSITION",0,	DXGI_FORMAT_R32G32B32A32_FLOAT,0,0,					D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
+		{"TEXCOORD",0,	DXGI_FORMAT_R32G32B32A32_FLOAT,0,sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
+		{"NORMAL",	0,	DXGI_FORMAT_R32G32B32A32_FLOAT,0,sizeof(float) * 8,	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
+		{"TANGENT",	0,	DXGI_FORMAT_R32G32B32A32_FLOAT,0,sizeof(float) * 12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0}
 	};
+
 	D3D12_INPUT_LAYOUT_DESC vertexDataLayoutDesc = {};
 	vertexDataLayoutDesc.NumElements = 4;
 	vertexDataLayoutDesc.pInputElementDescs = vertexDataElementDesc;
@@ -185,17 +196,14 @@ ID3D12PipelineState* CreatePSO(ID3D12RootSignature* inID3D12RootSignature,
 	psoDesc.SampleMask = 0xffffffff;
 	psoDesc.InputLayout = vertexDataLayoutDesc;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
 	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 	psoDesc.RasterizerState.CullMode = inCullMode;
 	psoDesc.RasterizerState.DepthClipEnable = TRUE;
-
 	psoDesc.DepthStencilState.DepthEnable = inEnableDepthTest;
-	psoDesc.DepthStencilState.DepthWriteMask = inEnableDepthTest ? 
-		D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+	psoDesc.DepthStencilState.DepthWriteMask = inEnableDepthTest ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-
 	psoDesc.BlendState = { 0 };
+
 	D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc = {
 		FALSE,FALSE,
 		D3D12_BLEND_SRC_ALPHA,D3D12_BLEND_INV_SRC_ALPHA,D3D12_BLEND_OP_ADD,
@@ -203,19 +211,24 @@ ID3D12PipelineState* CreatePSO(ID3D12RootSignature* inID3D12RootSignature,
 		D3D12_LOGIC_OP_NOOP,
 		D3D12_COLOR_WRITE_ENABLE_ALL,
 	};
-	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
-		psoDesc.BlendState.RenderTarget[i] = rtBlendDesc;
-	psoDesc.NumRenderTargets = 1;
-	ID3D12PipelineState* d3d12PSO = nullptr;
 
+	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+	{
+		psoDesc.BlendState.RenderTarget[i] = rtBlendDesc;
+	}
+	psoDesc.NumRenderTargets = 1;
+
+	ID3D12PipelineState* d3d12PSO = nullptr;
 	HRESULT hResult = gD3D12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&d3d12PSO));
 	if (FAILED(hResult)) {
 		return nullptr;
 	}
+
 	return d3d12PSO;
 }
 
-bool InitD3D12(HWND inHWND, int inWidth, int inHeight) {
+bool InitD3D12(HWND inHWND, int inWidth, int inHeight) 
+{
 	HRESULT hResult;
 	UINT dxgiFactoryFlags = 0;
 #ifdef _DEBUG
@@ -338,19 +351,28 @@ bool InitD3D12(HWND inHWND, int inWidth, int inHeight) {
 
 	return true;
 }
-ID3D12CommandAllocator* GetCommandAllocator() {
+
+ID3D12CommandAllocator* GetCommandAllocator() 
+{
 	return gCommandAllocator;
 }
-ID3D12GraphicsCommandList* GetCommandList() {
+
+ID3D12GraphicsCommandList* GetCommandList() 
+{
 	return gCommandList;
 }
-void WaitForCompletionOfCommandList() {
-	if (gFence->GetCompletedValue() < gFenceValue) {
+
+void WaitForCompletionOfCommandList() 
+{
+	if (gFence->GetCompletedValue() < gFenceValue) 
+	{
 		gFence->SetEventOnCompletion(gFenceValue, gFenceEvent);
 		WaitForSingleObject(gFenceEvent, INFINITE);
 	}
 }
-void EndCommandList() {
+
+void EndCommandList() 
+{
 	gCommandList->Close();//
 	ID3D12CommandList* ppCommandLists[] = { gCommandList };
 	gCommandQueue->ExecuteCommandLists(1, ppCommandLists);
@@ -358,7 +380,9 @@ void EndCommandList() {
 	gFenceValue += 1;
 	gCommandQueue->Signal(gFence, gFenceValue);//
 }
-void BeginRenderToSwapChain(ID3D12GraphicsCommandList* inCommandList) {
+
+void BeginRenderToSwapChain(ID3D12GraphicsCommandList* inCommandList) 
+{
 	gCurrentRTIndex = gSwapChain->GetCurrentBackBufferIndex();
 	D3D12_RESOURCE_BARRIER barrier = InitResourceBarrier(gColorRTs[gCurrentRTIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	inCommandList->ResourceBarrier(1, &barrier);
@@ -374,17 +398,23 @@ void BeginRenderToSwapChain(ID3D12GraphicsCommandList* inCommandList) {
 	inCommandList->ClearRenderTargetView(colorRT, clearColor, 0, nullptr);
 	inCommandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 }
-void EndRenderToSwapChain(ID3D12GraphicsCommandList* inCommandList) {
+
+void EndRenderToSwapChain(ID3D12GraphicsCommandList* inCommandList) 
+{
 	D3D12_RESOURCE_BARRIER barrier = InitResourceBarrier(gColorRTs[gCurrentRTIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 	inCommandList->ResourceBarrier(1, &barrier);
 }
-void SwapD3D12Buffers() {
+
+void SwapD3D12Buffers() 
+{
 	gSwapChain->Present(0, 0);
 }
-ID3D12Resource* CreateBufferObject(ID3D12GraphicsCommandList* inCommandList,
-	void* inData, int inDataLen, D3D12_RESOURCE_STATES inFinalResourceState) {
+
+ID3D12Resource* CreateBufferObject(ID3D12GraphicsCommandList* inCommandList, void* inData, int inDataLen, D3D12_RESOURCE_STATES inFinalResourceState) 
+{
 	D3D12_HEAP_PROPERTIES d3dHeapProperties = {};
 	d3dHeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;//gpu
+
 	D3D12_RESOURCE_DESC d3d12ResourceDesc = {};
 	d3d12ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	d3d12ResourceDesc.Alignment = 0;
@@ -440,22 +470,26 @@ ID3D12Resource* CreateBufferObject(ID3D12GraphicsCommandList* inCommandList,
 	inCommandList->ResourceBarrier(1, &barrier);
 	return bufferObject;
 }
-D3D12_RESOURCE_BARRIER InitResourceBarrier(
-	ID3D12Resource* inResource, D3D12_RESOURCE_STATES inPrevState,
-	D3D12_RESOURCE_STATES inNextState) {
+
+D3D12_RESOURCE_BARRIER InitResourceBarrier(ID3D12Resource* inResource, D3D12_RESOURCE_STATES inPrevState, D3D12_RESOURCE_STATES inNextState)
+{
 	D3D12_RESOURCE_BARRIER d3d12ResourceBarrier;
 	memset(&d3d12ResourceBarrier, 0, sizeof(d3d12ResourceBarrier));
+
 	d3d12ResourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	d3d12ResourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	d3d12ResourceBarrier.Transition.pResource = inResource;
 	d3d12ResourceBarrier.Transition.StateBefore = inPrevState;
 	d3d12ResourceBarrier.Transition.StateAfter = inNextState;
 	d3d12ResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
 	return d3d12ResourceBarrier;
 }
+
 ID3D12Resource* CreateTextureObject(ID3D12GraphicsCommandList* inCommandList,
 	DXGI_FORMAT inFormat,int inWidth, int inHeight,int inDepth,int inMipMapLevelCount,
-	D3D12_RESOURCE_DIMENSION inDimesion) {
+	D3D12_RESOURCE_DIMENSION inDimesion)
+{
 	D3D12_HEAP_PROPERTIES d3dHeapProperties = {};
 	d3dHeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
@@ -482,9 +516,11 @@ ID3D12Resource* CreateTextureObject(ID3D12GraphicsCommandList* inCommandList,
 	);
 	return texture;
 }
+
 ID3D12Resource* CreateTexture2D(ID3D12GraphicsCommandList* inCommandList,
 	const void* inPixelData, int inDataSizeInBytes, int inWidth, int inHeight,
-	DXGI_FORMAT inFormat) {
+	DXGI_FORMAT inFormat) 
+{
 	ID3D12Resource* texture = CreateTextureObject(inCommandList,inFormat,inWidth,inHeight,1,
 		1, D3D12_RESOURCE_DIMENSION_TEXTURE2D);
 	D3D12_RESOURCE_DESC d3d12ResourceDesc = texture->GetDesc();
@@ -520,7 +556,9 @@ ID3D12Resource* CreateTexture2D(ID3D12GraphicsCommandList* inCommandList,
 	inCommandList->ResourceBarrier(1, &barrier);
 	return texture;
 }
-ID3D12Resource* CreateTextureCube(ID3D12GraphicsCommandList* inCommandList, const char** inFilePaths) {
+
+ID3D12Resource* CreateTextureCube(ID3D12GraphicsCommandList* inCommandList, const char** inFilePaths) 
+{
 	int imageWidth, imageHeight, imageChannel;
 	stbi_uc* imagePixels[6];
 	DXGI_FORMAT imageFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -544,16 +582,20 @@ ID3D12Resource* CreateTextureCube(ID3D12GraphicsCommandList* inCommandList, cons
 
 	BYTE* pCopyDst;
 	tempBufferObject->Map(0, nullptr, reinterpret_cast<void**>(&pCopyDst));
-	for (int i=0;i<6;i++){
+	for (int i=0 ; i < 6; i++)
+	{
 		BYTE* pDstTempBuffer = reinterpret_cast<BYTE*>(pCopyDst + subresourceFootprint[i].Offset);
 		const BYTE* pSrcData = reinterpret_cast<const BYTE*>(imagePixels[i]);
-		for (UINT y = 0; y < rowUsed[i]; y++) {
+		for (UINT y = 0; y < rowUsed[i]; y++) 
+		{
 			int dataSizeInARow = imageWidth * 4;
 			memcpy(pDstTempBuffer + subresourceFootprint[i].Footprint.RowPitch * y, pSrcData + dataSizeInARow * y, dataSizeInARow);
 		}
 	}
 	tempBufferObject->Unmap(0, nullptr);
-	for (int i = 0; i < 6; i++) {
+
+	for (int i = 0; i < 6; i++) 
+	{
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
 		dst.pResource = texture;
 		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -566,19 +608,23 @@ ID3D12Resource* CreateTextureCube(ID3D12GraphicsCommandList* inCommandList, cons
 		inCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 	}
 
-	D3D12_RESOURCE_BARRIER barrier = InitResourceBarrier(texture,
-		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	D3D12_RESOURCE_BARRIER barrier = InitResourceBarrier(texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	inCommandList->ResourceBarrier(1, &barrier);
 
 	for (int i = 0; i < 6; i++) {
 		delete[] imagePixels[i];
 	}
+
 	return texture;
 }
-ID3D12Device* GetD3DDevice() {
+
+ID3D12Device* GetD3DDevice() 
+{
 	return gD3D12Device;
 }
-Texture2D* LoadTexture2DFromFile(ID3D12GraphicsCommandList*inCommandList, const char* inFilePath) {
+
+Texture2D* LoadTexture2DFromFile(ID3D12GraphicsCommandList*inCommandList, const char* inFilePath) 
+{
 	int imageWidth, imageHeight, imageChannel;
 	stbi_uc* pixels = stbi_load(inFilePath, &imageWidth, &imageHeight, &imageChannel, 4);
 	ID3D12Resource* texture = CreateTexture2D(inCommandList, pixels,

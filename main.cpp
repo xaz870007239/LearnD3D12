@@ -9,7 +9,8 @@
 
 LPCTSTR gWindowClassName = L"BattleFire";
 
-LRESULT CALLBACK WindowProc(HWND inHWND, UINT inMSG, WPARAM inWParam, LPARAM inLParam) {
+LRESULT CALLBACK WindowProc(HWND inHWND, UINT inMSG, WPARAM inWParam, LPARAM inLParam) 
+{
 	switch (inMSG) {
 	case WM_CLOSE:
 		PostQuitMessage(0);//enqueue WM_QUIT
@@ -17,7 +18,9 @@ LRESULT CALLBACK WindowProc(HWND inHWND, UINT inMSG, WPARAM inWParam, LPARAM inL
 	}
 	return DefWindowProc(inHWND, inMSG, inWParam, inLParam);
 }
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int inShowCmd) {
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int inShowCmd) 
+{
 	//register
 	WNDCLASSEX wndClassEx;
 	wndClassEx.cbSize = sizeof(WNDCLASSEX);
@@ -61,6 +64,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, L"Create Window Failed!", L"Error", MB_OK | MB_ICONERROR);
 		return -1;
 	}
+
 	//show
 	InitD3D12(hwnd, 1280, 720);
 	InitScene(1280, 720);
@@ -70,15 +74,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	MSG msg;
 	DWORD last_time = timeGetTime();
 	DWORD appStartTime = last_time;
-	while (true){
+	while (true)
+	{
 		ZeroMemory(&msg, sizeof(MSG));
-		if (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
-			if (msg.message == WM_QUIT) {
+		if (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) 
+		{
+			if (msg.message == WM_QUIT) 
+			{
 				break;
 			}
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
-		} else {
+		} 
+		else 
+		{
 			//rendering
 			WaitForCompletionOfCommandList();
 			DWORD current_time = timeGetTime();//ms
